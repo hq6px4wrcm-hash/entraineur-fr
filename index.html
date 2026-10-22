@@ -1,0 +1,554 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Entraîneur passé composé</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Entraîneur">
+<meta name="theme-color" content="#1f6f78">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column, phone-first; tabs at top, one card per exercise item. */
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --fg:#1f2320; --muted:#6b706a; --line:#d9d5cb;
+  --accent:#1f6f78; --accent-fg:#ffffff; --ok:#2e7d4f; --ok-bg:#e4f2e9; --bad:#b4442c; --bad-bg:#f8e6e0; --warn-bg:#fbf0d2; --warn:#8a6a0c;
+  --display:"IBM Plex Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1a1c1b; --surface:#242726; --fg:#ece9e1; --muted:#9a9e97; --line:#3a3e3b;
+  --accent:#6fc3cb; --accent-fg:#0f2426; --ok:#7fcf9c; --ok-bg:#1f3328; --bad:#f09a82; --bad-bg:#3d231c; --warn-bg:#3a3214; --warn:#e5c45a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#1a1c1b; --surface:#242726; --fg:#ece9e1; --muted:#9a9e97; --line:#3a3e3b;
+  --accent:#6fc3cb; --accent-fg:#0f2426; --ok:#7fcf9c; --ok-bg:#1f3328; --bad:#f09a82; --bad-bg:#3d231c; --warn-bg:#3a3214; --warn:#e5c45a; color-scheme:dark }
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:500;font-size:1.35rem;margin:0}
+.date{font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.status{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.stat .k{font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-weight:600;font-variant-numeric:tabular-nums}
+.stat.done .v{color:var(--ok)}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+nav button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:8px 4px;font:inherit;font-weight:500;color:var(--muted);cursor:pointer}
+nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav button:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section[hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cue{font-family:var(--display);font-size:1.3rem;line-height:1.35;text-wrap:balance}
+.small{font-size:.85rem;color:var(--muted)}
+.mode{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+input[type=text]{width:100%;box-sizing:border-box;font:inherit;font-size:1.1rem;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.primary{background:var(--accent);color:var(--accent-fg);border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+button.ghost{background:none;border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.verdict{border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.verdict.ok{background:var(--ok-bg);color:var(--ok)}
+.verdict.bad{background:var(--bad-bg);color:var(--bad)}
+.verdict .model{font-family:var(--display);font-size:1.1rem;color:var(--fg)}
+.verdict .err{font-weight:500}
+.note{color:var(--muted);font-size:.9rem}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:.9rem}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.chunk{font-family:var(--display);font-size:1.25rem;line-height:1.7;margin:0;padding:0;list-style:none}
+.chunk b{font-weight:500;color:var(--accent)}
+.score{font-family:var(--display);font-size:2rem;font-variant-numeric:tabular-nums}
+.line{font-family:var(--mono);font-size:.85rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;word-break:break-word;user-select:all}
+table{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.errlist{margin:0;padding-left:1.1em;font-size:.9rem}
+.errlist li{margin:2px 0}
+.tbl{overflow-x:auto}
+@media (prefers-reduced-motion:no-preference){.progress i{transition:width .2s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Entraîneur passé composé</h1>
+    <span class="date" id="today"></span>
+  </header>
+  <div class="status">
+    <div class="stat" id="st-series"><div class="k">Серия</div><div class="v">—</div></div>
+    <div class="stat" id="st-cards"><div class="k">Карточки</div><div class="v">—</div></div>
+    <div class="stat" id="st-chunk"><div class="k">Чанк</div><div class="v">—</div></div>
+  </div>
+  <nav role="tablist">
+    <button role="tab" data-tab="series" aria-selected="true">Серия</button>
+    <button role="tab" data-tab="cards" aria-selected="false">Карточки</button>
+    <button role="tab" data-tab="chunk" aria-selected="false">Чанк</button>
+    <button role="tab" data-tab="log" aria-selected="false">Журнал</button>
+  </nav>
+
+  <section id="tab-series">
+    <div class="card" id="series-start">
+      <label class="mode" for="mode-select">Режим</label>
+      <select id="mode-select" style="font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)">
+        <option value="2b-i">2b-i · список être-глаголов</option>
+        <option value="2b-ii">2b-ii · être или avoir</option>
+        <option value="2c">2c · возвратные глаголы</option>
+        <option value="2d">2d · отрицание без ne</option>
+      </select>
+      <div class="mode" id="series-mode"></div>
+      <p style="margin:0">20 фраз по-русски. Набирайте перевод по памяти, без таблиц и подсказок; акценты не нужны. Считаются вспомогательный глагол (être / avoir), возвратное местоимение, порядок слов и <em>pas</em>; окончание причастия и орфография только показываются.</p>
+      <p class="small" style="margin:0" id="series-hint"></p>
+      <div class="row"><button class="primary" id="btn-start">Начать серию</button></div>
+    </div>
+    <div class="card" id="series-item" hidden>
+      <div class="row" style="justify-content:space-between"><span class="mode" id="item-counter"></span><span class="mode" id="item-aided"></span></div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="cue" id="cue"></div>
+      <input type="text" id="answer" lang="fr" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="…" inputmode="text">
+      <div class="row"><button class="primary" id="btn-check">Проверить</button><button class="primary" id="btn-next" hidden>Дальше</button></div>
+      <div id="verdict" hidden></div>
+    </div>
+    <div class="card" id="series-end" hidden>
+      <div class="score" id="final-score"></div>
+      <div class="small" id="final-status"></div>
+      <ul class="errlist" id="final-errors"></ul>
+      <pre class="line" id="result-line" style="white-space:pre-wrap;margin:0"></pre>
+      <div class="row"><button class="ghost" id="btn-copy">Скопировать отчёт для учителя</button><button class="ghost" id="btn-again">Ещё серия (не в зачёт)</button></div>
+    </div>
+  </section>
+
+  <section id="tab-cards" hidden>
+    <div class="card" id="cards-start">
+      <div class="mode" id="cards-mode"></div>
+      <p style="margin:0">Слова из реестра орфографии. Сначала трижды от руки, потом здесь по памяти. Акценты не считаются, остальные буквы — да.</p>
+      <div class="row"><button class="primary" id="btn-cards">Начать карточки</button></div>
+    </div>
+    <div class="card" id="cards-item" hidden>
+      <div class="mode" id="card-counter"></div>
+      <div class="cue" id="card-cue"></div>
+      <input type="text" id="card-answer" lang="fr" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="…">
+      <div class="row"><button class="primary" id="btn-card-check">Проверить</button><button class="primary" id="btn-card-next" hidden>Дальше</button></div>
+      <div id="card-verdict" hidden></div>
+    </div>
+    <div class="card" id="cards-end" hidden>
+      <div class="score" id="cards-score"></div>
+      <ul class="errlist" id="cards-errors"></ul>
+      <div class="small" id="cards-next"></div>
+    </div>
+  </section>
+
+  <section id="tab-chunk" hidden>
+    <div class="card">
+      <div class="mode" id="chunk-mode"></div>
+      <div class="warn" id="chunk-warn" hidden>Серия идёт: чанк открыт, серия помечена «с опорой» и в зачёт не идёт.</div>
+      <ul class="chunk" id="chunk-list"></ul>
+      <p class="small" style="margin:0">Прочитать вслух целиком, два раза, в ритме. Не по слову — чанком.</p>
+      <div class="row"><button class="primary" id="btn-chunk">Прочитал вслух</button></div>
+    </div>
+  </section>
+
+  <section id="tab-log" hidden>
+    <div class="card">
+      <div class="mode">Последние 21 день</div>
+      <div class="tbl"><table><thead><tr><th>Дата</th><th>Режим</th><th>Серия</th><th>Карт.</th><th>Чанк</th></tr></thead><tbody id="log-body"></tbody></table></div>
+      <p class="small" style="margin:0">«опора» = чанк открывался во время серии; «повтор» = вторая серия за день. В зачёт идёт первая серия дня без опоры.</p>
+      <div class="row"><button class="ghost" id="btn-copy-log">Скопировать журнал с ошибками</button></div>
+    </div>
+  </section>
+</div>
+
+<script>
+'use strict';
+// ---------- item bank ----------
+const SUBJ = {
+  je:   {ru:'я',          g:'m', n:'s', pron:'me', el:false},
+  tu:   {ru:'ты',         g:'m', n:'s', pron:'t',  el:true},
+  il:   {ru:'он',         g:'m', n:'s', pron:'s',  el:true},
+  elle: {ru:'она',        g:'f', n:'s', pron:'s',  el:true},
+  on:   {ru:'мы',         g:'m', n:'p', pron:'s',  el:true},
+  vous: {ru:'вы',          g:'m', n:'p', pron:'vous', el:false},
+  ils:  {ru:'они',         g:'m', n:'p', pron:'se', el:false},
+  elles:{ru:'они (ж.)',    g:'f', n:'p', pron:'se', el:false},
+};
+const ETRE = {je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
+const AVOIR= {je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
+
+// verb: inf, pp, aux ('e'|'a'), refl, ru [masc, fem, pl], c = complements [[ru, fr]]
+const LIST = [ // 2b-i closed list, être
+  {inf:'aller',pp:'allé',aux:'e',ru:['пошёл','пошла','пошли'],c:[['в аптеку','à la pharmacie'],['на работу','au bureau'],['к врачу','chez le médecin'],['в магазин','au magasin'],['на озеро','au lac']]},
+  {inf:'venir',pp:'venu',aux:'e',ru:['пришёл','пришла','пришли'],c:[['вечером','le soir'],['с другом','avec un ami'],['с опозданием','en retard'],['в девять','à neuf heures']]},
+  {inf:'arriver',pp:'arrivé',aux:'e',ru:['приехал','приехала','приехали'],c:[['на вокзал','à la gare'],['вовремя','à l\'heure'],['в полдень','à midi'],['в Женеву','à Genève']]},
+  {inf:'partir',pp:'parti',aux:'e',ru:['уехал','уехала','уехали'],c:[['рано','tôt'],['в Лозанну','à Lausanne'],['в субботу','samedi'],['после обеда','après le déjeuner']]},
+  {inf:'rester',pp:'resté',aux:'e',ru:['остался','осталась','остались'],c:[['дома','à la maison'],['в постели','au lit'],['в кафе','au café'],['в офисе','au bureau'],['до полуночи','jusqu\'à minuit']]},
+  {inf:'rentrer',pp:'rentré',aux:'e',ru:['вернулся домой','вернулась домой','вернулись домой'],c:[['в полночь','à minuit'],['поздно','tard'],['после работы','après le travail'],['пешком','à pied']]},
+  {inf:'sortir',pp:'sorti',aux:'e',ru:['вышел','вышла','вышли'],c:[['с собакой','avec le chien'],['после ужина','après le dîner'],['в субботу вечером','samedi soir'],['на улицу','dans la rue']]},
+  {inf:'descendre',pp:'descendu',aux:'e',ru:['спустился','спустилась','спустились'],c:[['в подвал','au sous-sol'],['на остановке','à l\'arrêt'],['пешком','à pied'],['в город','en ville']]},
+  {inf:'monter',pp:'monté',aux:'e',ru:['поднялся','поднялась','поднялись'],c:[['на шестой этаж','au sixième étage'],['пешком','à pied'],['в трамвай','dans le tram'],['наверх','en haut']]},
+  {inf:'tomber',pp:'tombé',aux:'e',ru:['упал','упала','упали'],c:[['на лестнице','dans l\'escalier'],['на улице','dans la rue'],['с велосипеда','du vélo'],['на льду','sur la glace']]},
+  {inf:'naître',pp:'né',aux:'e',ru:['родился','родилась','родились'],c:[['в Женеве','à Genève'],['в Москве','à Moscou'],['в марте','en mars']]},
+  {inf:'mourir',pp:'mort',aux:'e',ru:['умер','умерла','умерли'],c:[['в прошлом году','l\'année dernière'],['в девяносто лет','à nonante ans']]},
+  {inf:'passer',pp:'passé',aux:'e',ru:['зашёл','зашла','зашли'],c:[['в аптеку','à la pharmacie'],['в банк','à la banque'],['к соседке','chez la voisine'],['в офис','au bureau']]},
+  {inf:'retourner',pp:'retourné',aux:'e',ru:['вернулся обратно','вернулась обратно','вернулись обратно'],c:[['в офис','au bureau'],['в магазин','au magasin'],['на вокзал','à la gare']]},
+];
+const AVOIRV = [ // not in the list → avoir (traps from the student's own errors first)
+  {inf:'passer',pp:'passé',aux:'a',ru:['провёл','провела','провели'],c:[['три часа в офисе','trois heures au bureau'],['вечер дома','la soirée à la maison'],['выходные в Лозанне','le week-end à Lausanne']]},
+  {inf:'éviter',pp:'évité',aux:'a',ru:['избежал','избежала','избежали'],c:[['пробку','l\'embouteillage'],['очередь','la queue']]},
+  {inf:'sauter',pp:'sauté',aux:'a',ru:['пропустил','пропустила','пропустили'],c:[['обед','le déjeuner'],['завтрак','le petit-déjeuner']]},
+  {inf:'marcher',pp:'marché',aux:'a',ru:['шёл пешком','шла пешком','шли пешком'],c:[['час','une heure'],['до вокзала','jusqu\'à la gare'],['двадцать минут','vingt minutes']]},
+  {inf:'préparer',pp:'préparé',aux:'a',ru:['приготовил','приготовила','приготовили'],c:[['ужин','le dîner'],['кофе','le café'],['документы','les documents']]},
+  {inf:'sauvegarder',pp:'sauvegardé',aux:'a',ru:['сохранил','сохранила','сохранили'],c:[['файл','le fichier'],['фотографии','les photos']]},
+  {inf:'commencer',pp:'commencé',aux:'a',ru:['начал','начала','начали'],c:[['в девять','à neuf heures'],['работу в восемь','le travail à huit heures'],['с подвала','par le sous-sol']]},
+  {inf:'démarrer',pp:'démarré',aux:'a',ru:['завёл','завела','завели'],c:[['машину','la voiture'],['компьютер','l\'ordinateur']]},
+  {inf:'prendre',pp:'pris',aux:'a',ru:['сел на','села на','сели на'],c:[['автобус','le bus'],['трамвай','le tram'],['поезд в Лозанну','le train pour Lausanne']]},
+  {inf:'faire',pp:'fait',aux:'a',ru:['сделал','сделала','сделали'],c:[['уборку','le ménage'],['покупки','les courses'],['стирку','la lessive']]},
+  {inf:'voir',pp:'vu',aux:'a',ru:['видел','видела','видели'],c:[['соседа','le voisin'],['врача','le médecin'],['фильм','un film']]},
+  {inf:'manger',pp:'mangé',aux:'a',ru:['поел','поела','поели'],c:[['в кафе','au café'],['дома','à la maison'],['в полдень','à midi']]},
+  {inf:'travailler',pp:'travaillé',aux:'a',ru:['работал','работала','работали'],c:[['до шести','jusqu\'à six heures'],['дома','à la maison'],['всё утро','toute la matinée']]},
+  {inf:'dormir',pp:'dormi',aux:'a',ru:['спал','спала','спали'],c:[['восемь часов','huit heures'],['до полудня','jusqu\'à midi'],['плохо','mal']]},
+  {inf:'lire',pp:'lu',aux:'a',ru:['читал','читала','читали'],c:[['газету','le journal'],['письмо','la lettre'],['до полуночи','jusqu\'à minuit']]},
+  {inf:'finir',pp:'fini',aux:'a',ru:['закончил','закончила','закончили'],c:[['в полдень','à midi'],['работу','le travail'],['поздно','tard']]},
+  {inf:'acheter',pp:'acheté',aux:'a',ru:['купил','купила','купили'],c:[['хлеб','du pain'],['билеты','les billets'],['круассаны','des croissants']]},
+  {inf:'attendre',pp:'attendu',aux:'a',ru:['ждал','ждала','ждали'],c:[['двадцать минут','vingt minutes'],['трамвай','le tram'],['врача','le médecin']]},
+  {inf:'oublier',pp:'oublié',aux:'a',ru:['забыл','забыла','забыли'],c:[['ключи','les clés'],['телефон','le natel'],['кошелёк','le portefeuille']]},
+  {inf:'sortir',pp:'sorti',aux:'a',ru:['вынес','вынесла','вынесли'],c:[['мусор','les poubelles'],['велосипед','le vélo']]},
+  {inf:'parler',pp:'parlé',aux:'a',ru:['поговорил','поговорила','поговорили'],c:[['с соседкой','avec la voisine'],['с коллегой','avec un collègue']]},
+];
+const REFL = [ // 2c — reflexives; pl: plural subjects only
+  {inf:'se lever',pp:'levé',ru:['встал','встала','встали'],c:[['в семь','à sept heures'],['рано','tôt'],['поздно','tard'],['в шесть','à six heures']]},
+  {inf:'se coucher',pp:'couché',ru:['лёг спать','легла спать','легли спать'],c:[['в полночь','à minuit'],['поздно','tard'],['в десять','à dix heures'],['рано','tôt']]},
+  {inf:'se réveiller',pp:'réveillé',ru:['проснулся','проснулась','проснулись'],c:[['в шесть','à six heures'],['рано','tôt'],['поздно','tard'],['в семь','à sept heures']]},
+  {inf:'s\'habiller',pp:'habillé',ru:['оделся','оделась','оделись'],c:[['быстро','vite'],['тепло','chaudement']]},
+  {inf:'se laver',pp:'lavé',ru:['умылся','умылась','умылись'],c:[['быстро','vite'],['утром','le matin']]},
+  {inf:'se promener',pp:'promené',ru:['прогулялся','прогулялась','прогулялись'],c:[['у озера','au bord du lac'],['в парке','dans le parc'],['в старом городе','dans la vieille ville']]},
+  {inf:'se reposer',pp:'reposé',ru:['отдохнул','отдохнула','отдохнули'],c:[['после обеда','après le déjeuner'],['в воскресенье','dimanche'],['час','une heure']]},
+  {inf:'s\'habituer',pp:'habitué',ru:['привык','привыкла','привыкли'],c:[['к шуму','au bruit'],['к холоду','au froid'],['к трамваю','au tram']]},
+  {inf:'se parler',pp:'parlé',noagr:true,pl:true,ru:['','','поговорили друг с другом'],c:[['в конце','à la fin'],['вчера','hier']]},
+  {inf:'s\'amuser',pp:'amusé',ru:['повеселился','повеселилась','повеселились'],c:[['на вечеринке','à la fête'],['в субботу','samedi']]},
+  {inf:'se dépêcher',pp:'dépêché',ru:['поторопился','поторопилась','поторопились'],c:[['утром','ce matin'],['на вокзале','à la gare']]},
+  {inf:'s\'arrêter',pp:'arrêté',ru:['остановился','остановилась','остановились'],c:[['в кафе','au café'],['у пекарни','devant la boulangerie'],['на красный','au feu rouge']]},
+  {inf:'se tromper',pp:'trompé',ru:['ошибся','ошиблась','ошиблись'],c:[['дверью','de porte'],['остановкой','d\'arrêt'],['этажом','d\'étage']]},
+  {inf:'se perdre',pp:'perdu',ru:['заблудился','заблудилась','заблудились'],c:[['в городе','en ville'],['в Лозанне','à Lausanne']]},
+  {inf:'s\'occuper',pp:'occupé',ru:['занялся','занялась','занялись'],c:[['кошкой','du chat'],['документами','des documents']]},
+  {inf:'s\'asseoir',pp:'assis',ru:['сел','села','сели'],c:[['у окна','près de la fenêtre'],['в первом ряду','au premier rang']]},
+  {inf:'s\'inscrire',pp:'inscrit',ru:['записался','записалась','записались'],c:[['на курс','au cours'],['в спортзал','à la salle de sport']]},
+];
+// fixed-subject reflexive items (ça / tout / la soirée)
+const REFL_FIXED = [
+  {ru:'Вечер прошёл хорошо.',fr:'La soirée s\'est bien passée.',aux:'e',refl:true,subj:'elle',pron:'s',stem:'pass',ppFull:'passée',ppBase:'passé'},
+  {ru:'Всё прошло хорошо.',fr:'Tout s\'est bien passé.',aux:'e',refl:true,subj:'il',pron:'s',stem:'pass',ppFull:'passé',ppBase:'passé'},
+  {ru:'Выходные прошли хорошо.',fr:'Le week-end s\'est bien passé.',aux:'e',refl:true,subj:'il',pron:'s',stem:'pass',ppFull:'passé',ppBase:'passé'},
+];
+
+const SPELLING_DEFAULT = [
+  ['heure','час (время)'],['un peu','немного'],['six','шесть'],['feuilles','листья'],['restaurant','ресторан'],['minuit','полночь'],
+  ['neuf','девять'],['arrivé','прибыл, приехал (причастие)'],['bureau','офис, кабинет'],['il y a','есть, имеется (оборот)'],['pharmacie','аптека'],
+  ['est','он/она есть (être, 3-е лицо)'],['après','после'],['dîner','ужин'],['déjeuner','обед'],['travail','работа'],['aujourd\'hui','сегодня'],
+  ['fermé','закрыт'],['queue','очередь'],['vingt','двадцать'],['bruit','шум'],['ensuite','затем, потом'],
+];
+const CHUNKS = {
+  '2c':  {title:'se lever — чанк целиком', lines:['je <b>me suis</b> levé','tu <b>t\'es</b> levé','il <b>s\'est</b> levé','nous <b>nous sommes</b> levés','vous <b>vous êtes</b> levés','ils <b>se sont</b> levés']},
+  '2b-i':{title:'rester — чанк целиком', lines:['je <b>suis</b> resté','tu <b>es</b> resté','il <b>est</b> resté','on <b>est</b> restés','vous <b>êtes</b> restés','ils <b>sont</b> restés']},
+  '2b-ii':{title:'être / avoir — два чанка', lines:['je <b>suis</b> rentré — j\'<b>ai</b> fini','tu <b>es</b> rentré — tu <b>as</b> fini','il <b>est</b> rentré — il <b>a</b> fini','on <b>est</b> rentrés — on <b>a</b> fini','vous <b>êtes</b> rentrés — vous <b>avez</b> fini','ils <b>sont</b> rentrés — ils <b>ont</b> fini']},
+  '2d':  {title:'négation orale — чанк целиком', lines:['j\'ai <b>pas</b> fini','je suis <b>pas</b> resté','je me suis <b>pas</b> levé','il a <b>pas</b> fini','il est <b>pas</b> resté','il s\'est <b>pas</b> levé']},
+};
+const MODE_LABEL = {'2b-i':'2b-i · список être-глаголов','2b-ii':'2b-ii · être или avoir','2c':'2c · возвратные глаголы','2d':'2d · отрицание без ne'};
+const MODE_FR = {'2b-i':'verbes de la liste être','2b-ii':'être ou avoir','2c':'verbes pronominaux','2d':'négation orale sans ne'};
+
+// ---------- helpers ----------
+const strip = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const todayKey = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const addDays = (key,n) => { const [y,m,d]=key.split('-').map(Number); const t=new Date(y,m-1,d+n); return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'); };
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const stemOf = pp => { const s=strip(pp); if(s.length<=3) return s; return s.replace(/(e|es|ee|ees|s|i|is|u|us|t|ts)$/,''); };
+
+function ruForm(v, sk){ const S=SUBJ[sk]; return S.n==='p'?v.ru[2]:(S.g==='f'?v.ru[1]:v.ru[0]); }
+function agree(pp, sk, noagr){ if(noagr) return pp; const S=SUBJ[sk]; let r=pp; if(S.g==='f') r+='e'; if(S.n==='p') r+='s'; return r; }
+
+function buildItem(v, sk, opts){ // opts: {refl, neg}
+  const S=SUBJ[sk]; const c=pick(v.c); const refl=!!opts.refl; const neg=!!opts.neg;
+  const auxKind = refl ? 'e' : v.aux;
+  const auxF = auxKind==='e' ? ETRE[sk] : AVOIR[sk];
+  let subjFr = sk, pron='';
+  if(refl){ pron = S.pron; if(S.el && pron.length===1) pron = pron+"'"; else pron = pron+' '; }
+  let head;
+  if(refl){ head = subjFr+' '+pron+auxF; }
+  else if(sk==='je' && auxKind==='a'){ head = "j'"+auxF; }
+  else head = subjFr+' '+auxF;
+  if(neg) head += ' pas';
+  const ppA = auxKind==='e' ? agree(v.pp, sk, v.noagr) : v.pp;
+  const fr = cap(head+' '+ppA+' '+c[1]+'.');
+  const ruV = ruForm(v, sk);
+  const ru = cap(S.ru+' '+(neg?'не ':'')+ruV+' '+c[0]+'.');
+  return {ru, fr, aux:auxKind, refl, neg, subj:sk, pron:refl?S.pron:'', stem:stemOf(v.pp), ppFull:ppA, ppBase:v.pp, inf:v.inf};
+}
+
+function buildSeries(mode, extra){
+  const subjects = Object.keys(SUBJ); const items=[];
+  const need = 20;
+  if(mode==='2b-i'){
+    const vs = shuffle(LIST.slice()); let i=0;
+    while(items.length<need){ const v=vs[i%vs.length]; items.push(buildItem(v, pick(subjects), {})); i++; }
+  } else if(mode==='2b-ii'){
+    const vs = shuffle(LIST.slice()).slice(0,10).concat(shuffle(AVOIRV.slice()).slice(0,10));
+    shuffle(vs).forEach(v=>items.push(buildItem(v, pick(subjects), {})));
+  } else if(mode==='2c'){
+    const vs = shuffle(REFL.slice()); let i=0;
+    const fixed = shuffle(REFL_FIXED.slice()).slice(0,2);
+    while(items.length<need-fixed.length){ const v=vs[i%vs.length]; const sk = v.pl ? pick(['on','vous','ils','elles']) : pick(subjects); items.push(buildItem(v, sk, {refl:true})); i++; }
+    fixed.forEach(f=>items.push(Object.assign({},f)));
+  } else if(mode==='2d'){
+    const pool=[]; shuffle(LIST.slice()).slice(0,7).forEach(v=>pool.push([v,{neg:true}]));
+    shuffle(AVOIRV.slice()).slice(0,7).forEach(v=>pool.push([v,{neg:true}]));
+    shuffle(REFL.filter(v=>!v.pl)).slice(0,6).forEach(v=>pool.push([v,{neg:true,refl:true}]));
+    pool.forEach(([v,o])=>items.push(buildItem(v, pick(subjects), o)));
+  }
+  // phrase-bank extras from config (max 3, replace last items)
+  const ex = (extra||[]).filter(e=>e.ru&&e.fr&&e.stem&&(!e.mode||e.mode===mode)).slice(0,3);
+  ex.forEach((e,i)=>{ items[items.length-1-i] = Object.assign({bank:true}, e); });
+  return shuffle(items).slice(0,need);
+}
+
+// ---------- scorer ----------
+const AUX_E = ['suis','es','est','sommes','etes','sont'], AUX_A = ['ai','as','a','avons','avez','ont'];
+const SUBJ_TOK = {je:['je','j'],tu:['tu'],il:['il'],elle:['elle'],on:['on','nous'],vous:['vous'],ils:['ils','elles'],elles:['elles','ils']};
+const ALL_SUBJ_TOK = ['je','j','tu','il','elle','on','nous','vous','ils','elles'];
+const PRON_TOK = ['me','m','te','t','se','s','nous','vous'];
+const PRON_FOR = {je:['me','m'],tu:['te','t'],il:['se','s'],elle:['se','s'],on:['se','s'],nous:['nous'],vous:['vous'],ils:['se','s'],elles:['se','s']};
+const ETRE_N = {je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'etes',ils:'sont',elles:'sont'};
+const AVOIR_N = {je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
+const SKIP = ['pas','deja','bien','encore','jamais','tres','vite','tot','tard','aussi','toujours','rien'];
+
+function lev(a,b){ const m=a.length,n=b.length; const d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++) d[0][j]=j; for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]; }
+function tokens(s){ return strip(s).replace(/[’‘`]/g,"'").replace(/[.,!?;:]/g,' ').split(/[\s']+/).filter(Boolean); }
+
+function scoreItem(ans, it){
+  const t = tokens(ans); const errs=[], notes=[];
+  const model = it.fr;
+  if(t.length===0) return {ok:false, errs:['réponse vide'], notes};
+  // subject
+  let subjKey = it.subj, subjIdx=-1;
+  const acc = SUBJ_TOK[it.subj]||[it.subj];
+  for(let i=0;i<Math.min(t.length,3);i++){ if(acc.includes(t[i])){ subjIdx=i; subjKey = t[i]==='nous'?'nous':it.subj; break; } }
+  if(subjIdx<0 && ALL_SUBJ_TOK.includes(t[0])) errs.push('sujet : '+acc[0]);
+  // auxiliary
+  let auxIdx=-1, auxTok='';
+  for(let i=Math.max(0,subjIdx+1);i<t.length;i++){ if(AUX_E.includes(t[i])||AUX_A.includes(t[i])){ auxIdx=i; auxTok=t[i]; break; } }
+  if(auxIdx<0){ errs.push('auxiliaire manquant'); return {ok:false, errs, notes}; }
+  const isE = AUX_E.includes(auxTok);
+  const expF = it.aux==='e' ? ETRE_N[subjKey] : AVOIR_N[subjKey];
+  const HOMO = {es:'est',est:'es',a:'as',as:'a'}; // same sound: spelling, not structure
+  if((it.aux==='e')!==isE) errs.push('auxiliaire : '+(it.aux==='e'?'être':'avoir')+' → '+expF);
+  else if(auxTok!==expF){ if(HOMO[auxTok]===expF) notes.push('écrit : '+expF); else errs.push('forme : '+expF); }
+  // reflexive pronoun
+  let prev = auxIdx>0 ? t[auxIdx-1] : '';
+  const prevIsSubj = (auxIdx-1===subjIdx);
+  if(it.refl && prev==='c' && (auxTok==='est'||auxTok==='es')){ prev='s'; notes.push("écrit : s'est"); }
+  if(it.refl){
+    const want = PRON_FOR[subjKey];
+    const laterPron = t.slice(auxIdx+1).findIndex(x=>(PRON_TOK.includes(x) && !ALL_SUBJ_TOK.includes(x)) || ((x==='nous'||x==='vous')&&want.includes(x)));
+    if(!prevIsSubj && want.includes(prev)) { if(laterPron>=0) errs.push('pronom en double'); }
+    else if(!prevIsSubj && PRON_TOK.includes(prev)) errs.push('pronom : '+want[0]);
+    else {
+      if(laterPron>=0) errs.push('ordre : pronom avant l\'auxiliaire');
+      else errs.push('pronom manquant : '+want[0]);
+    }
+  } else if(!prevIsSubj && PRON_TOK.includes(prev) && !(prev==='nous'||prev==='vous')) {
+    errs.push('pas de pronom ici');
+  }
+  // negation
+  const after = t.slice(auxIdx+1);
+  const pasIdx = after.indexOf('pas');
+  const hasNe = t.includes('ne') || t.includes('n');
+  if(it.neg){
+    if(pasIdx<0) errs.push('pas manquant');
+    if(hasNe) notes.push('à l\'oral : sans ne');
+  } else if(pasIdx>=0) errs.push('phrase affirmative');
+  // participle
+  const st = it.stem;
+  const match = x => st.length<=2 ? /^(ne|nee|nes|nees)$/.test(x) : (x.startsWith(st) && x.length-st.length<=3);
+  let pIdx=-1;
+  for(let i=0;i<after.length;i++){ if(match(after[i]) && !(after[i]==='ne')){ pIdx=i; break; } }
+  if(st.length<=2 && pIdx<0){ for(let i=0;i<after.length;i++){ if(/^(ne|nee|nes|nees)$/.test(after[i]) && i!==pasIdx){ pIdx=i; break; } } }
+  let fuzzy=false;
+  if(pIdx<0 && st.length>=5){ // misspelled participle: same word, wrong letters → spelling, not structure
+    const tol = st.length>=7 ? 2 : 1;
+    for(let i=0;i<after.length;i++){ const x=after[i]; if(SKIP.includes(x)||PRON_TOK.includes(x)||ALL_SUBJ_TOK.includes(x)||x[0]!==st[0]) continue; const head=x.slice(0, st.length+1); if(x.length>=st.length-1 && Math.min(lev(x.slice(0,st.length),st), lev(head,st))<=tol){ pIdx=i; fuzzy=true; break; } }
+  }
+  if(pIdx<0){ errs.push('verbe : '+it.ppBase); }
+  else {
+    if(it.neg && pasIdx>=0 && pIdx<pasIdx) errs.push('ordre : pas avant le participe');
+    const tok = after[pIdx];
+    if(fuzzy || (tok!==strip(it.ppFull) && tok!==strip(it.ppBase))) notes.push('écrit : '+it.ppFull);
+  }
+  return {ok:errs.length===0, errs, notes};
+}
+
+// ---------- state & storage ----------
+let LOG_ROWS=[], config={mode:'2c', extra:[], spelling:null, note:''};
+let day=null; // today's doc
+let cards=null; // {w: {box, due}}
+const TODAY = todayKey();
+const $ = id => document.getElementById(id);
+const lsGet = k => { try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+
+async function loadAll(){
+  config = Object.assign(config, lsGet('cfg')||{});
+  day = lsGet('day:'+TODAY);
+  cards = lsGet('cards');
+  if(!day) day = {date:TODAY, mode:config.mode, series:null, cards:null, chunk:false};
+  if(!cards) cards = {};
+  render();
+}
+async function saveDay(){
+  day.updatedAt = new Date().toISOString();
+  lsSet('day:'+TODAY, day);
+  render();
+}
+async function saveCards(){
+  lsSet('cards', cards);
+}
+
+function spellingList(){ return (config.spelling && config.spelling.length) ? config.spelling : SPELLING_DEFAULT; }
+function dueCards(){
+  return spellingList().filter(([w])=>{ const c=cards[w]; return !c || c.due<=TODAY; });
+}
+
+function render(){
+  $('today').textContent = TODAY;
+  $('mode-select').value = config.mode in CHUNKS ? config.mode : '2c';
+  const mode = config.mode in CHUNKS ? config.mode : '2c';
+  $('series-mode').textContent = MODE_LABEL[mode];
+  $('series-hint').textContent = config.note || '';
+  const s = day.series;
+  const stS = $('st-series'); stS.classList.toggle('done', !!s);
+  stS.querySelector('.v').textContent = s ? (s.score+'/'+s.total+(s.aided?' опора':'')+(s.counted?'':' повтор')) : 'не сделана';
+  const due = dueCards().length;
+  const stC = $('st-cards'); stC.classList.toggle('done', !!day.cards);
+  stC.querySelector('.v').textContent = day.cards ? (day.cards.ok+'/'+day.cards.total) : (due+' к сдаче');
+  const stK = $('st-chunk'); stK.classList.toggle('done', !!day.chunk);
+  stK.querySelector('.v').textContent = day.chunk ? 'прочитан' : 'не прочитан';
+  $('cards-mode').textContent = due ? (due+' карточек сегодня') : 'на сегодня карточек нет';
+  $('btn-cards').disabled = !due;
+  const ch = CHUNKS[mode]; $('chunk-mode').textContent = ch.title;
+  $('chunk-list').innerHTML = ch.lines.map(l=>'<li>'+l+'</li>').join('');
+  $('btn-chunk').disabled = !!day.chunk; $('btn-chunk').textContent = day.chunk ? 'Отмечено' : 'Прочитал вслух';
+}
+
+$('mode-select').addEventListener('change', ()=>{ config.mode=$('mode-select').value; lsSet('cfg',{mode:config.mode}); render(); });
+// ---------- tabs ----------
+let seriesActive=false, aided=false;
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  const tab=b.dataset.tab;
+  if(tab==='chunk' && seriesActive && !aided){ aided=true; $('chunk-warn').hidden=false; $('item-aided').textContent='с опорой'; }
+  document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+  ['series','cards','chunk','log'].forEach(t=>{ $('tab-'+t).hidden = t!==tab; });
+  if(tab==='log') renderLog();
+}));
+
+// ---------- series flow ----------
+let items=[], idx=0, results=[];
+$('btn-start').addEventListener('click', startSeries);
+$('btn-again').addEventListener('click', startSeries);
+function startSeries(){
+  const mode = config.mode in CHUNKS ? config.mode : '2c';
+  items = buildSeries(mode, config.extra); idx=0; results=[]; aided=false; seriesActive=true;
+  $('chunk-warn').hidden=true; $('item-aided').textContent='';
+  $('series-start').hidden=true; $('series-end').hidden=true; $('series-item').hidden=false;
+  showItem();
+}
+function showItem(){
+  const it=items[idx];
+  $('item-counter').textContent=(idx+1)+' / '+items.length+'';
+  $('bar').style.width=(idx/items.length*100)+'%';
+  $('cue').textContent=it.ru; $('answer').value=''; $('answer').disabled=false; $('verdict').hidden=true;
+  $('btn-check').hidden=false; $('btn-next').hidden=true; $('answer').focus();
+}
+$('btn-check').addEventListener('click', checkItem);
+$('answer').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('btn-next').hidden) checkItem(); else nextItem(); } });
+function checkItem(){
+  const it=items[idx]; const ans=$('answer').value.trim(); if(!ans) return;
+  const r=scoreItem(ans,it); results.push({ru:it.ru, fr:it.fr, ans, ok:r.ok, err:r.errs.join('; '), bank:!!it.bank});
+  const v=$('verdict'); v.className='verdict '+(r.ok?'ok':'bad'); v.hidden=false;
+  v.innerHTML = (r.ok?'<div class="err">✓ juste</div>':'<div class="err">✗ '+r.errs.map(esc).join(' · ')+'</div>')
+    + '<div class="model">'+esc(it.fr)+'</div>' + (r.notes.length?'<div class="note">'+r.notes.map(esc).join(' · ')+'</div>':'');
+  $('answer').disabled=true; $('btn-check').hidden=true; $('btn-next').hidden=false; $('btn-next').focus();
+}
+$('btn-next').addEventListener('click', nextItem);
+function nextItem(){ idx++; if(idx<items.length) showItem(); else endSeries(); }
+async function endSeries(){
+  seriesActive=false;
+  const score=results.filter(r=>r.ok).length, total=results.length;
+  const counted = !day.series && !aided;
+  const errs=results.filter(r=>!r.ok);
+  const rec={mode:config.mode, score, total, aided, counted, at:new Date().toISOString(), items:results, errors:errs.map(r=>r.ans+' → '+r.fr+' ('+r.err+')')};
+  if(!day.series || (counted)) day.series=rec; else { day.extraSeries=(day.extraSeries||[]); day.extraSeries.push({score,total,aided,at:rec.at}); }
+  await saveDay();
+  $('series-item').hidden=true; $('series-end').hidden=false;
+  $('final-score').textContent=score+' / '+total;
+  $('final-status').textContent = counted ? 'Зачётная серия дня. Сохранено на этом устройстве.' : (aided ? 'С опорой: не в зачёт. Сохранено как повтор.' : 'Повтор: первая серия дня уже в зачёте.');
+  $('final-errors').innerHTML = errs.map(r=>'<li><span class="note">'+esc(r.ans)+'</span> → '+esc(r.fr)+' <span class="note">('+esc(r.err)+')</span></li>').join('');
+  $('result-line').textContent=report(rec, TODAY);
+}
+function report(s, date){
+  const lines=['Entraînement passé composé — '+date,'Mode : '+(MODE_FR[s.mode]||s.mode)+(s.aided?' (avec appui)':'')+(s.counted?'':' (répétition)'),'Résultat : '+s.score+' / '+s.total];
+  const errs=(s.items||[]).filter(r=>!r.ok);
+  if(errs.length){ lines.push('','Erreurs :'); errs.forEach(r=>lines.push('• '+r.ans+'  →  '+r.fr+'  ['+r.err+']')); }
+  else lines.push('Sans erreur.');
+  return lines.join('\n');
+}
+function copyText(btn, t, el){ navigator.clipboard.writeText(t).then(()=>{ const o=btn.textContent; btn.textContent='Скопировано'; setTimeout(()=>btn.textContent=o,1500); }).catch(()=>{ if(el){ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); } }); }
+$('btn-copy').addEventListener('click', ()=>copyText($('btn-copy'), $('result-line').textContent, $('result-line')));
+$('btn-copy-log').addEventListener('click', ()=>{
+  const out=LOG_ROWS.map(r=>{ const s=r.series; let l=r.date+' | '+(s?(MODE_FR[s.mode]||s.mode)+' | '+s.score+'/'+s.total+(s.aided?' (avec appui)':'')+(s.counted?'':' (répétition)'):'série : —')+' | cartes : '+(r.cards?(r.cards.ok+'/'+r.cards.total):'—')+' | chunk : '+(r.chunk?'oui':'non'); if(s&&s.items){ const e=s.items.filter(x=>!x.ok); if(e.length) l+='\n   '+e.map(x=>x.ans+' → '+x.fr).join('\n   '); } if(r.cards&&r.cards.wrong&&r.cards.wrong.length) l+='\n   orthographe : '+r.cards.wrong.join(', '); return l; }).join('\n');
+  copyText($('btn-copy-log'), 'Journal d\'entraînement (21 jours)\n'+out, null);
+});
+
+// ---------- cards flow ----------
+let cq=[], ci=0, cres=[];
+$('btn-cards').addEventListener('click', ()=>{ cq=shuffle(dueCards()); ci=0; cres=[]; $('cards-start').hidden=true; $('cards-end').hidden=true; $('cards-item').hidden=false; showCard(); });
+function showCard(){ const [w,ru]=cq[ci]; $('card-counter').textContent=(ci+1)+' / '+cq.length; $('card-cue').textContent=ru; $('card-answer').value=''; $('card-answer').disabled=false; $('card-verdict').hidden=true; $('btn-card-check').hidden=false; $('btn-card-next').hidden=true; $('card-answer').focus(); }
+$('btn-card-check').addEventListener('click', checkCard);
+$('card-answer').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); if($('btn-card-next').hidden) checkCard(); else nextCard(); } });
+const normWord = s => strip(s).replace(/[’‘`]/g,"'").replace(/^(le |la |l'|les |un |une |des )/,'').replace(/\s+/g,' ').trim();
+function checkCard(){
+  const [w]=cq[ci]; const ans=$('card-answer').value.trim(); if(!ans) return;
+  const ok = normWord(ans)===normWord(w);
+  cres.push({w, ans, ok});
+  const c = cards[w]||{box:0,due:TODAY};
+  const steps=[1,3,7,14];
+  if(ok){ c.box=Math.min((c.box||0)+1,4); c.due=addDays(TODAY, steps[c.box-1]); } else { c.box=0; c.due=addDays(TODAY,1); }
+  c.last=TODAY; cards[w]=c;
+  const v=$('card-verdict'); v.className='verdict '+(ok?'ok':'bad'); v.hidden=false;
+  v.innerHTML=(ok?'<div class="err">✓</div>':'<div class="err">✗</div>')+'<div class="model">'+esc(w)+'</div>'+(ok?'<div class="note">следующий раз: '+c.due+'</div>':'');
+  $('card-answer').disabled=true; $('btn-card-check').hidden=true; $('btn-card-next').hidden=false; $('btn-card-next').focus();
+}
+$('btn-card-next').addEventListener('click', nextCard);
+async function nextCard(){ ci++; if(ci<cq.length) showCard(); else {
+  const ok=cres.filter(r=>r.ok).length;
+  day.cards={ok, total:cres.length, wrong:cres.filter(r=>!r.ok).map(r=>r.w+' ← '+r.ans), at:new Date().toISOString()};
+  await saveCards(); await saveDay();
+  $('cards-item').hidden=true; $('cards-end').hidden=false;
+  $('cards-score').textContent=ok+' / '+cres.length;
+  $('cards-errors').innerHTML=cres.filter(r=>!r.ok).map(r=>'<li><span class="note">'+esc(r.ans)+'</span> → '+esc(r.w)+'</li>').join('');
+  $('cards-next').textContent='Слова с ошибкой вернутся завтра. Сохранено.';
+} }
+
+// ---------- chunk ----------
+$('btn-chunk').addEventListener('click', async ()=>{ day.chunk=true; day.chunkAt=new Date().toISOString(); await saveDay(); });
+
+// ---------- log ----------
+async function renderLog(){
+  let rows=[];
+  for(let i=0;i<21;i++){ const r=lsGet('day:'+addDays(TODAY,-i)); if(r) rows.push(r); }
+  LOG_ROWS=rows;
+  $('log-body').innerHTML = rows.length ? rows.map(r=>{ const s=r.series; return '<tr><td>'+esc(r.date)+'</td><td>'+esc(s?s.mode:(r.mode||''))+'</td><td>'+(s?(s.score+'/'+s.total+(s.aided?' опора':'')+(s.counted?'':' повтор')):'—')+'</td><td>'+(r.cards?(r.cards.ok+'/'+r.cards.total):'—')+'</td><td>'+(r.chunk?'✓':'—')+'</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">Пока пусто. Результаты хранятся в этом браузере на этом устройстве.</td></tr>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+loadAll();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
+</script>
+
+</body></html>
